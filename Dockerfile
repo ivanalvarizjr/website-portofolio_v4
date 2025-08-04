@@ -20,5 +20,3 @@ RUN php artisan config:cache && php artisan route:cache
 
 # Expose port
 EXPOSE 80
-
-CMD ["apache2-foreground"]
