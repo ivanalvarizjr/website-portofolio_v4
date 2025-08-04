@@ -13,10 +13,6 @@ COPY . /var/www/html
 
 COPY .env.example /var/www/html/.env
 
-
-# Set working dir
-WORKDIR /var/www/html
-
 # Give permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
@@ -24,6 +20,9 @@ RUN chown -R www-data:www-data /var/www/html \
 
 # Apache DocumentRoot diatur ke public/
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+
+# Set working dir
+WORKDIR /var/www/html/public
 
 # Expose port
 EXPOSE 80
