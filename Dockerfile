@@ -1,28 +1,29 @@
 FROM php:8.2-apache
 
-# Install dependensi sistem dan PHP extensions
-RUN apt-get update && apt-get install -y unzip curl git libonig-dev \
-    && docker-php-ext-install mbstring pdo_mysql
+# Install dependency
+RUN apt-get update && apt-get install -y \
+    unzip curl git libonig-dev libzip-dev zip \
+    && docker-php-ext-install pdo_mysql mbstring
 
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/local/bin/composer
-
-# Copy source code
-COPY . /var/www/html
-# Set working directory
-WORKDIR /var/www/html
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
 
 # Copy Laravel files
-COPY . .
+COPY . /var/www/html
 
-# Set permission
+COPY .env.example /var/www/html/.env
+
+
+# Set working dir
+WORKDIR /var/www/html
+
+# Give permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Install Laravel dependency
-RUN composer install
+# Apache DocumentRoot diatur ke public/
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
 # Expose port
 EXPOSE 80
