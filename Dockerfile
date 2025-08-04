@@ -1,28 +1,22 @@
-FROM php:8.2-apache
+FROM webdevops/php-nginx:8.2
 
-# Install dependency
-RUN apt-get update && apt-get install -y \
-    unzip curl git libonig-dev libzip-dev zip \
-    && docker-php-ext-install pdo_mysql mbstring
+# Copy semua file project
+COPY . /app
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Set working directory
+WORKDIR /app
 
-# Copy Laravel files
-COPY . /var/www/html
+# Install Composer dependencies
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-COPY .env.example /var/www/html/.env
+# Set permission (opsional tapi penting)
+RUN chown -R application:application /app
 
-# Give permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+# Jalankan permission Laravel
+RUN chmod -R 775 storage bootstrap/cache
 
-# Apache DocumentRoot diatur ke public/
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
-
-# Set working dir
-WORKDIR /var/www/html/public
+# Jalankan artisan config dan route cache
+RUN php artisan config:cache && php artisan route:cache
 
 # Expose port
 EXPOSE 80
