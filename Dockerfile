@@ -10,12 +10,21 @@ RUN curl -sS https://getcomposer.org/installer | php \
 
 # Copy source code
 COPY . /var/www/html
+# Set working directory
 WORKDIR /var/www/html
+
+# Copy Laravel files
+COPY . .
+
+# Set permission
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
 
 # Install Laravel dependency
 RUN composer install
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html
-
+# Expose port
 EXPOSE 80
+
+CMD ["apache2-foreground"]
