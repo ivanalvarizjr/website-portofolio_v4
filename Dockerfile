@@ -2,11 +2,13 @@ FROM php:8.2-apache
 
 # Install ekstensi PHP yang dibutuhkan Laravel
 RUN apt-get update && apt-get install -y \
-    zip unzip curl libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip mbstring exif pcntl bcmath
+    git unzip zip curl libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN apt-get update && apt-get install -y unzip curl php-cli php-mbstring git \
+    && curl -sS https://getcomposer.org/installer | php \
+    && mv composer.phar /usr/local/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
@@ -15,13 +17,10 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install dependency Laravel
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install
 
-# Ganti permission (biar storage bisa ditulis Laravel)
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Ubah permission
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
-# Copy config Apache
-COPY ./docker/apache.conf /etc/apache2/sites-available/000-default.conf
-
-# Aktifkan mod_rewrite Laravel
-RUN a2enmod rewrite
+EXPOSE 80
